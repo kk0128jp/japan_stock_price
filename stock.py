@@ -1,6 +1,5 @@
 import tkinter as tk
 import yfinance as yf
-import csv
 import os
 
 # メイン処理
@@ -23,7 +22,7 @@ def main():
     ## まとめたデータ
     day_data = getDaydata(t_code)[["Open","Close","High","Low"]]
     # csv保存
-    
+    writeDataToCsv(com_name,day_data)
     
 # コードに東証.Tをつける
 def addT(code):
@@ -35,7 +34,7 @@ def getComInfo(code):
         com_info = yf.Ticker(code)
         return com_info.info
     except Exception as e:
-        showErrorWindow(e)
+        showInfo(e)
 
 # 最新日の株価取得
 def getDaydata(code):
@@ -44,20 +43,30 @@ def getDaydata(code):
     return day_data
 
 #def writeDataToCsv(csv_data):
-def writeDataToCsv(com_name):
+def writeDataToCsv(com_name, csv_data):
     # フォルダ作成
     ## デスクトップのパスを取得
-    desktop_path = os.path.expanduser('~/Desktop')
-    
+    desktop_path = os.path.expanduser('~\\Desktop')
+    ## デスクトップ配下のフォルダパス
+    folder_path = desktop_path + "\\株価\\{}".format(com_name)
+    file_path = folder_path + '\\data.csv'
+    if os.path.exists(folder_path) == False:
+        # フォルダが存在しなかったら作成 
+        os.makedirs(folder_path)
+        #showInfo("デスクトップに「株価」フォルダを作成しました")
+    # 事前にファイル,フォーマット作成
+    if os.path.exists(file_path):
+        with open(file_path, 'w') as file:
+            file.write()
+    # csvファイルにデータ追記
     try:
-        # デスクトップにフォルダ作成
-        os.mkdir(desktop_path + "/株価データ/{com_name}".format(com_name))
-    except FileExistsError as fee:
-        showErrorWindow(fee)
-    # フォルダ存在確認
-    
-# エラーウィンドウ表示
-def showErrorWindow(error_messages):
+        csv_data.to_csv(file_path, mode='a', header=False)
+        showInfo("データを保存しました")
+    except Exception as e:
+        showInfo(e)
+
+# インフォメーションウィンドウ表示
+def showInfo(error_messages):
     # サブウィンドウ
     sub_window = tk.Toplevel()
     sub_window.geometry('300x300')
@@ -65,8 +74,8 @@ def showErrorWindow(error_messages):
     sub_error_message = tk.Label(sub_window, text=error_messages)
     sub_error_message.place(x=30, y=70)
     # 閉じるボタン表示
-    #sub_button = tk.Button(master=sub_window, text="閉じる")
-    #sub_button.place(x=30, y=100)
+    sub_button = tk.Button(master=sub_window, text="閉じる")
+    sub_button.place(x=30, y=100)
     
 # メインウィンドウを作成
 baseGround = tk.Tk()
