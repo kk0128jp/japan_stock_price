@@ -1,6 +1,8 @@
 import tkinter as tk
 import yfinance as yf
 import os
+import openpyxl
+import pandas as pd
 
 # メイン処理
 def main():
@@ -21,8 +23,16 @@ def main():
     low_price = getDaydata(t_code)["Low"]
     ## まとめたデータ
     day_data = getDaydata(t_code)[["Open","Close","High","Low"]]
+    # インデックス整形
+    old_index = pd.to_datetime(close_price.index)
+    new_index = old_index.strftime('%m/%d')
+    print(new_index)
+    reset_index_data = close_price.reset_index()
+    drop_data_col = reset_index_data.drop(columns='Date')
+    drop_data_col['new_date'] = new_index
+    set_new_index = drop_data_col.set_index("new_date")
     # csv保存
-    writeDataToCsv(com_name,day_data)
+    writeDataToCsv(code_textbox.get(), com_name, set_new_index)
     
 # コードに東証.Tをつける
 def addT(code):
@@ -43,24 +53,34 @@ def getDaydata(code):
     return day_data
 
 #def writeDataToCsv(csv_data):
-def writeDataToCsv(com_name, csv_data):
+def writeDataToCsv(code, com_name, csv_data):
     # フォルダ作成
     ## デスクトップのパスを取得
     desktop_path = os.path.expanduser('~\\Desktop')
     ## デスクトップ配下のフォルダパス
     folder_path = desktop_path + "\\株価\\{}".format(com_name)
-    file_path = folder_path + '\\data.csv'
+    file_path = folder_path + '\\data.xlsx'
     if os.path.exists(folder_path) == False:
         # フォルダが存在しなかったら作成 
         os.makedirs(folder_path)
-        #showInfo("デスクトップに「株価」フォルダを作成しました")
     # 事前にファイル,フォーマット作成
-    if os.path.exists(file_path):
-        with open(file_path, 'w') as file:
-            file.write()
-    # csvファイルにデータ追記
+    if os.path.exists(file_path) == False:
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws["A1"] = code
+        ws["B1"] = com_name
+        ws["A2"] = "日付"
+        ws["B2"] = "終値"
+        wb.save(file_path)
+    # xlsxファイルにデータ追記
     try:
-        csv_data.to_csv(file_path, mode='a', header=False)
+        with pd.ExcelWriter(file_path, mode='a', if_sheet_exists='overlay') as writer:
+            # 最終行取得
+            load_file = openpyxl.load_workbook(file_path)
+            sheet = load_file['Sheet']
+            max_row = sheet.max_row
+            # 最終行に追記
+            csv_data.to_excel(writer, sheet_name='Sheet', startrow=max_row, header=False)
         showInfo("データを保存しました")
     except Exception as e:
         showInfo(e)
