@@ -6,10 +6,10 @@ import pandas as pd
 
 # メイン処理
 def main():
-    # コードに.T(東証)付ける
-    t_code = addT(code_textbox.get())
     # 証券コード取得
     ticker_symbol = code_textbox.get()
+    # コードに.T(東証)付ける
+    t_code = addT(ticker_symbol)
     # コードから会社名取得
     com_name = getComInfo(t_code)['longName']
     # 最新日の株価データ取得
@@ -26,13 +26,12 @@ def main():
     # インデックス整形
     old_index = pd.to_datetime(close_price.index)
     new_index = old_index.strftime('%m/%d')
-    print(new_index)
     reset_index_data = close_price.reset_index()
     drop_data_col = reset_index_data.drop(columns='Date')
     drop_data_col['new_date'] = new_index
     set_new_index = drop_data_col.set_index("new_date")
     # csv保存
-    writeDataToCsv(code_textbox.get(), com_name, set_new_index)
+    writeDataToCsv(ticker_symbol, com_name, set_new_index)
     
 # コードに東証.Tをつける
 def addT(code):
@@ -69,8 +68,11 @@ def writeDataToCsv(code, com_name, csv_data):
         ws = wb.active
         ws["A1"] = code
         ws["B1"] = com_name
-        ws["A2"] = "日付"
-        ws["B2"] = "終値"
+        ws["A2"] = "取得日"
+        ws["B2"] = "始値"
+        ws["C2"] = "終値"
+        ws["D2"] = "高値"
+        ws["E2"] = "安値"
         wb.save(file_path)
     # xlsxファイルにデータ追記
     try:
@@ -111,8 +113,28 @@ code_label.place(x=30, y=70)
 # テキストボックス
 code_textbox = tk.Entry(width=40)
 code_textbox.place(x=30, y=90)
-    
+
+# 取得するカラムの指定
+check_label = tk.Label(text='保存する項目')
+check_label.place(x=30, y=120)
+## デフォルトで全てオン
+col_def_value = tk.BooleanVar()
+col_def_value.set(True)
+# チェックボックス表示
+## 始値 
+open_checkbox = tk.Checkbutton(baseGround, variable=col_def_value, text='始値')
+open_checkbox.place(x=30, y=140)
+## 終値
+close_checkbox = tk.Checkbutton(baseGround, variable=col_def_value, text='終値')
+close_checkbox.place(x=90, y=140)
+## 高値
+high_checkbox = tk.Checkbutton(baseGround, variable=col_def_value, text='高値')
+high_checkbox.place(x=150, y=140)
+## 安値
+low_checkbox = tk.Checkbutton(baseGround, variable=col_def_value, text='安値')
+low_checkbox.place(x=210, y=140)
+
 # 取得ボタン
-button = tk.Button(baseGround, text='取得', command=main).place(x=30, y=130)
+button = tk.Button(baseGround, text='取得', command=main).place(x=30, y=180)
 
 baseGround.mainloop()
