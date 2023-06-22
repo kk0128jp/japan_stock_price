@@ -18,9 +18,11 @@ def main():
     ## 1日のデータ取得
     day_data = getDaydata(t_code)[col_list]
     # インデックス整形
-    get_new_index = resetIndex(day_data,day_data.index)
+    new_index_data = resetIndex(day_data,day_data.index)
+    # 前日比カラム追加
+    add_comparison_col = addComparisonCol(new_index_data)
     # csv保存
-    writeDataToCsv(ticker_symbol, com_name, get_new_index)
+    writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
     
 # コードに東証.Tをつける
 def addT(code):
@@ -91,9 +93,26 @@ def writeDataToCsv(code, com_name, csv_data):
         showInfo("データを保存しました")
     except Exception as e:
         showInfo(e)
+        
+# 前日比カラムの追加
+def addComparisonCol(data):
+    # 追加するカラム
+    cols = ["Open", "Close", "High", "Low"]
+    # カラムの位置
+    col_num = 1
+    for i in cols:
+        data.insert(col_num, i + '前日比', "→")
+        col_num += 2
+    return data
 
+# 前日比を割り出す
 def valComparison(file_path):
-    pass
+    # データの行数を取得
+    wb = openpyxl.load_workbook(file_path)
+    ws_max_row = wb["Sheet"].max_row
+    data_row = ws_max_row - 3
+    # 
+    
 
 # インフォメーションウィンドウ表示
 def showInfo(error_messages):
