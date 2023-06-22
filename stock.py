@@ -13,20 +13,14 @@ def main():
     # コードから会社名取得
     com_name = getComInfo(t_code)['longName']
     # 最新日の株価データ取得
-    ## 始値
-    open_price = getDaydata(t_code)["Open"]
-    ## 終値
-    close_price = getDaydata(t_code)["Close"]
-    ## 高値
-    high_price = getDaydata(t_code)["High"]
-    ## 安値
-    low_price = getDaydata(t_code)["Low"]
-    ## まとめたデータ
-    day_data = getDaydata(t_code)[["Open","Close","High","Low"]]
+    ## 取得するカラム
+    col_list = ["Open", "Close", "High", "Low"]
+    ## 1日のデータ取得
+    day_data = getDaydata(t_code)[col_list]
     # インデックス整形
-    old_index = pd.to_datetime(close_price.index)
+    old_index = pd.to_datetime(day_data.index)
     new_index = old_index.strftime('%m/%d')
-    reset_index_data = close_price.reset_index()
+    reset_index_data = day_data.reset_index()
     drop_data_col = reset_index_data.drop(columns='Date')
     drop_data_col['new_date'] = new_index
     set_new_index = drop_data_col.set_index("new_date")
@@ -51,7 +45,11 @@ def getDaydata(code):
     day_data = com.history(period="1d")
     return day_data
 
-#def writeDataToCsv(csv_data):
+# インデックスの整形
+def resetIndex():
+    pass
+
+# エクセルにデータ書き込み
 def writeDataToCsv(code, com_name, csv_data):
     # フォルダ作成
     ## デスクトップのパスを取得
@@ -66,13 +64,19 @@ def writeDataToCsv(code, com_name, csv_data):
     if os.path.exists(file_path) == False:
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws["A1"] = code
+        ws["A1"] = "社名"
         ws["B1"] = com_name
-        ws["A2"] = "取得日"
-        ws["B2"] = "始値"
-        ws["C2"] = "終値"
-        ws["D2"] = "高値"
-        ws["E2"] = "安値"
+        ws["A2"] = "証券コード"
+        ws["B2"] = code
+        ws["A3"] = "取得日"
+        ws["B3"] = "始値"
+        ws["C3"] = "前日比"
+        ws["D3"] = "終値"
+        ws["E3"] = "前日比"
+        ws["F3"] = "高値"
+        ws["G3"] = "前日比"
+        ws["H3"] = "安値"
+        ws["I3"] = "前日比"
         wb.save(file_path)
     # xlsxファイルにデータ追記
     try:
@@ -86,6 +90,9 @@ def writeDataToCsv(code, com_name, csv_data):
         showInfo("データを保存しました")
     except Exception as e:
         showInfo(e)
+
+def valComparison(file_path):
+    pass
 
 # インフォメーションウィンドウ表示
 def showInfo(error_messages):
@@ -114,27 +121,7 @@ code_label.place(x=30, y=70)
 code_textbox = tk.Entry(width=40)
 code_textbox.place(x=30, y=90)
 
-# 取得するカラムの指定
-check_label = tk.Label(text='保存する項目')
-check_label.place(x=30, y=120)
-## デフォルトで全てオン
-col_def_value = tk.BooleanVar()
-col_def_value.set(True)
-# チェックボックス表示
-## 始値 
-open_checkbox = tk.Checkbutton(baseGround, variable=col_def_value, text='始値')
-open_checkbox.place(x=30, y=140)
-## 終値
-close_checkbox = tk.Checkbutton(baseGround, variable=col_def_value, text='終値')
-close_checkbox.place(x=90, y=140)
-## 高値
-high_checkbox = tk.Checkbutton(baseGround, variable=col_def_value, text='高値')
-high_checkbox.place(x=150, y=140)
-## 安値
-low_checkbox = tk.Checkbutton(baseGround, variable=col_def_value, text='安値')
-low_checkbox.place(x=210, y=140)
-
 # 取得ボタン
-button = tk.Button(baseGround, text='取得', command=main).place(x=30, y=180)
+button = tk.Button(baseGround, text='取得', command=main).place(x=30, y=120)
 
 baseGround.mainloop()
