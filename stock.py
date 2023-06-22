@@ -21,8 +21,18 @@ def main():
     new_index_data = resetIndex(day_data,day_data.index)
     # 前日比カラム追加
     add_comparison_col = addComparisonCol(new_index_data)
-    # csv保存
-    writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
+    # excelへ保存
+    #writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
+    # 前日比算出
+    ## ファイルパス
+    desktop_path = os.path.expanduser('~\\Desktop')
+    folder_path = desktop_path + "\\株価\\{}".format(com_name)
+    file_path = folder_path + '\\data.xlsx'
+    get_file_data = valComparison(file_path)
+    # 前日比未入力セルの削除
+    
+    # 前日比入力済みデータを再入力
+    
     
 # コードに東証.Tをつける
 def addT(code):
@@ -39,7 +49,7 @@ def getComInfo(code):
 # 最新日の株価取得
 def getDaydata(code):
     com = yf.Ticker(code)
-    day_data = com.history(period="1d")
+    day_data = com.history(period="3d")
     return day_data
 
 # インデックスの整形
@@ -107,13 +117,40 @@ def addComparisonCol(data):
 
 # 前日比を割り出す
 def valComparison(file_path):
-    # データの行数を取得
-    wb = openpyxl.load_workbook(file_path)
-    ws_max_row = wb["Sheet"].max_row
-    data_row = ws_max_row - 3
-    # 
-    
-
+    # 保存されているデータ全て取り出す
+    df = pd.read_excel(file_path, sheet_name="Sheet", header=None, skiprows=3)
+    # データ行数取得
+    data_row = len(df)
+    cols = [1, 3, 5, 7]
+    start_comp_col = 2
+    # 前日比算出
+    for i in cols:
+        for j in range(data_row):
+            #　基準日と次の日の値取得
+            ## 最終行
+            if (j == data_row - 1):
+                # 次の日
+                next_day_val = df.iat[j, i]
+                # 前日比入力
+                if (day_val > next_day_val):
+                    df.iat[j, start_comp_col] = "↓"
+                elif (day_val < next_day_val):
+                    df.iat[j, start_comp_col] = "↑"
+            else:
+                # 基準日
+                day_val = df.iat[j, i]
+                # 次の日
+                next_day_val = df.iat[j + 1, i]
+                # 前日比入力
+                if (day_val > next_day_val):
+                    # >の場合
+                    df.iat[j + 1, start_comp_col] = "↓"
+                elif (day_val < next_day_val):
+                    # <の場合
+                    df.iat[j + 1, start_comp_col] = "↑"
+        start_comp_col += 2
+    return df
+                
 # インフォメーションウィンドウ表示
 def showInfo(error_messages):
     # サブウィンドウ
