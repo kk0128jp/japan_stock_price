@@ -18,14 +18,9 @@ def main():
     ## 1日のデータ取得
     day_data = getDaydata(t_code)[col_list]
     # インデックス整形
-    old_index = pd.to_datetime(day_data.index)
-    new_index = old_index.strftime('%m/%d')
-    reset_index_data = day_data.reset_index()
-    drop_data_col = reset_index_data.drop(columns='Date')
-    drop_data_col['new_date'] = new_index
-    set_new_index = drop_data_col.set_index("new_date")
+    get_new_index = resetIndex(day_data,day_data.index)
     # csv保存
-    writeDataToCsv(ticker_symbol, com_name, set_new_index)
+    writeDataToCsv(ticker_symbol, com_name, get_new_index)
     
 # コードに東証.Tをつける
 def addT(code):
@@ -46,8 +41,14 @@ def getDaydata(code):
     return day_data
 
 # インデックスの整形
-def resetIndex():
-    pass
+def resetIndex(data_frame, index):
+    old_index = pd.to_datetime(index)
+    new_index = old_index.strftime('%m/%d')
+    reset_index_data = data_frame.reset_index()
+    drop_data_col = reset_index_data.drop(columns='Date')
+    drop_data_col['new_date'] = new_index
+    set_new_index = drop_data_col.set_index("new_date")
+    return set_new_index
 
 # エクセルにデータ書き込み
 def writeDataToCsv(code, com_name, csv_data):
