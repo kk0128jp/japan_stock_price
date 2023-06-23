@@ -176,8 +176,11 @@ def showInfo(error_messages):
     # エラーメッセージ表示
     sub_error_message = tk.Label(sub_window, text=error_messages)
     sub_error_message.place(x=30, y=70)
+    # サブウィンドウ閉じる
+    def closeWindow():
+        sub_window.destroy()
     # 閉じるボタン表示
-    sub_button = tk.Button(master=sub_window, text="閉じる")
+    sub_button = tk.Button(master=sub_window, text="閉じる", command=closeWindow)
     sub_button.place(x=30, y=100)
     
 # メインウィンドウを作成
