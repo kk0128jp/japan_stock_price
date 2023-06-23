@@ -22,7 +22,7 @@ def main():
     # 前日比カラム追加
     add_comparison_col = addComparisonCol(new_index_data)
     # excelへ保存
-    #writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
+    writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
     # 前日比算出
     ## ファイルパス
     desktop_path = os.path.expanduser('~\\Desktop')
@@ -32,7 +32,7 @@ def main():
     # 前日比未入力セルの削除
     delNotEnteredCompareCol(file_path)
     # 前日比入力済みデータを再入力
-    
+    saveEnteredCompareCol(file_path, get_file_data)
     
 # コードに東証.Tをつける
 def addT(code):
@@ -49,7 +49,7 @@ def getComInfo(code):
 # 最新日の株価取得
 def getDaydata(code):
     com = yf.Ticker(code)
-    day_data = com.history(period="3d")
+    day_data = com.history(period="1d")
     return day_data
 
 # インデックスの整形
@@ -162,6 +162,11 @@ def delNotEnteredCompareCol(file_path):
     ws.delete_rows(4, max_data_row)
     # 保存
     wb.save(file_path)
+
+# 前日比カラムが入力済みのデータを保存
+def saveEnteredCompareCol(file_path, data):
+    with pd.ExcelWriter(file_path, mode="a", if_sheet_exists="overlay") as writer:
+        data.to_excel(writer, sheet_name="Sheet", index=False, header=False, startrow=3)
 
 # インフォメーションウィンドウ表示
 def showInfo(error_messages):
