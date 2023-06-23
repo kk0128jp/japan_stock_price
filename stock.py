@@ -182,7 +182,14 @@ def showInfo(error_messages):
     # 閉じるボタン表示
     sub_button = tk.Button(master=sub_window, text="閉じる", command=closeWindow)
     sub_button.place(x=30, y=100)
-    
+
+# 証券コードを保存するサブウィンドウを作成
+def createTsSaveWindow():
+    sub_window = tk.Toplevel()
+    sub_window.geometry('500x500')
+    label = tk.Label(sub_window, text="証券コード")
+    label.place(x=30, y=70)
+
 # メインウィンドウを作成
 baseGround = tk.Tk()
 # ウィンドウのサイズを設定
@@ -200,5 +207,8 @@ code_textbox.place(x=30, y=90)
 
 # 取得ボタン
 button = tk.Button(baseGround, text='取得', command=main).place(x=30, y=120)
+
+# 証券コードの保存の表示するボタン
+code_setting_button = tk.Button(baseGround, text='証券コードの設定', command=createTsSaveWindow).place(x=30, y=170)
 
 baseGround.mainloop()
