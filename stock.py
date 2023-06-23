@@ -30,7 +30,7 @@ def main():
     file_path = folder_path + '\\data.xlsx'
     get_file_data = valComparison(file_path)
     # 前日比未入力セルの削除
-    
+    delNotEnteredCompareCol(file_path)
     # 前日比入力済みデータを再入力
     
     
@@ -150,7 +150,19 @@ def valComparison(file_path):
                     df.iat[j + 1, start_comp_col] = "↑"
         start_comp_col += 2
     return df
-                
+
+# 前日比未入力データを削除
+def delNotEnteredCompareCol(file_path):
+    wb = openpyxl.load_workbook(file_path)
+    ws = wb['Sheet']
+    
+    # データの最終行を取得
+    max_data_row = ws.max_row
+    # データ行を削除
+    ws.delete_rows(4, max_data_row)
+    # 保存
+    wb.save(file_path)
+
 # インフォメーションウィンドウ表示
 def showInfo(error_messages):
     # サブウィンドウ
