@@ -206,13 +206,13 @@ def createTsSaveWindow():
         com_name = getComInfo(t_code)['longName']
         # Desktopフォルダのパス
         desktop_path = os.path.expanduser('~\\Desktop')
-        # Desktop/株価/社名フォルダパス
-        folder_path = desktop_path + "\\株価\\{}".format(com_name)
-        # Desktop/株価/社名フォルダの存在確認
+        # Desktop/株価フォルダパス
+        folder_path = desktop_path + "\\株価"
+        # Desktop/株価フォルダの存在確認
         if os.path.exists(folder_path) == False:
             # フォルダが存在しなかったら作成 
             os.makedirs(folder_path)
-        # ファイルパスは Desktop/株価/社名/code_set.json
+        # ファイルパスは Desktop/株価/code_set.json
         file_path = folder_path + '\\code_set.json'
         # key = 証券コード, value = 社名
         code_set = {ticker_symbol:com_name}
