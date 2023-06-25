@@ -3,6 +3,7 @@ import yfinance as yf
 import os
 import openpyxl
 import pandas as pd
+import json
 
 # メイン処理
 def main():
@@ -155,7 +156,6 @@ def valComparison(file_path):
 def delNotEnteredCompareCol(file_path):
     wb = openpyxl.load_workbook(file_path)
     ws = wb['Sheet']
-    
     # データの最終行を取得
     max_data_row = ws.max_row
     # データ行を削除
@@ -185,10 +185,48 @@ def showInfo(error_messages):
 
 # 証券コードを保存するサブウィンドウを作成
 def createTsSaveWindow():
+    # サブウィンドウ
     sub_window = tk.Toplevel()
+    sub_window.title("証券コードを保存")
     sub_window.geometry('500x500')
+    # ラベル 
     label = tk.Label(sub_window, text="証券コード")
     label.place(x=30, y=70)
+    # 証券コード入力欄
+    sub_textbox = tk.Entry(master=sub_window, width=40)
+    sub_textbox.place(x=30, y=100)
+    # 証券コード保存
+    def saveCodeList():
+        # コードから社名を取得
+        # 証券コード取得
+        ticker_symbol = sub_textbox.get()
+        # コードに.T(東証)付ける
+        t_code = addT(ticker_symbol)
+        # コードから会社名取得
+        com_name = getComInfo(t_code)['longName']
+        # Desktopフォルダのパス
+        desktop_path = os.path.expanduser('~\\Desktop')
+        # Desktop/株価/社名フォルダパス
+        folder_path = desktop_path + "\\株価\\{}".format(com_name)
+        # Desktop/株価/社名フォルダの存在確認
+        if os.path.exists(folder_path) == False:
+            # フォルダが存在しなかったら作成 
+            os.makedirs(folder_path)
+        # ファイルパスは Desktop/株価/社名/code_set.json
+        file_path = folder_path + '\\code_set.json'
+        # key = 証券コード, value = 社名
+        code_set = {ticker_symbol:com_name}
+        with open(file_path, mode='a') as f:
+            json.dump(code_set, f)
+    # 証券コード保存ボタン
+    save_button = tk.Button(master=sub_window, text="保存", command=saveCodeList)
+    save_button.place(x=30, y=130)
+    # サブウィンドウを閉じる関数
+    def closeWindow():
+        sub_window.destroy()
+        # サブウィンドウ閉じるボタン
+    close_button = tk.Button(master=sub_window, text="閉じる", command=closeWindow)
+    close_button.place(x=30, y=180)
 
 # メインウィンドウを作成
 baseGround = tk.Tk()
@@ -196,19 +234,14 @@ baseGround = tk.Tk()
 baseGround.geometry('600x600')
 # 画面タイトル
 baseGround.title('株式データ取得')
-
 # ラベル
 code_label = tk.Label(text='証券コード')
 code_label.place(x=30, y=70)
-
 # テキストボックス
 code_textbox = tk.Entry(width=40)
 code_textbox.place(x=30, y=90)
-
 # 取得ボタン
 button = tk.Button(baseGround, text='取得', command=main).place(x=30, y=120)
-
 # 証券コードの保存の表示するボタン
 code_setting_button = tk.Button(baseGround, text='証券コードの設定', command=createTsSaveWindow).place(x=30, y=170)
-
 baseGround.mainloop()
