@@ -25,9 +25,10 @@ def main():
     # excelへ保存
     writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
     # 前日比算出
-    ## ファイルパス
-    desktop_path = os.path.expanduser('~\\Desktop')
-    folder_path = desktop_path + "\\株価\\{}".format(com_name)
+    # カレントディレクトリパス取得
+    current_dir_path = os.getcwd()
+    # カレントディレクトリにフォルダ作成
+    folder_path = current_dir_path + "\\{}".format(com_name)
     file_path = folder_path + '\\data.xlsx'
     get_file_data = valComparison(file_path)
     # 前日比未入力セルの削除
@@ -66,10 +67,10 @@ def resetIndex(data_frame, index):
 # エクセルにデータ書き込み
 def writeDataToCsv(code, com_name, csv_data):
     # フォルダ作成
-    ## デスクトップのパスを取得
-    desktop_path = os.path.expanduser('~\\Desktop')
-    ## デスクトップ配下のフォルダパス
-    folder_path = desktop_path + "\\株価\\{}".format(com_name)
+    # カレントディレクトリパス取得
+    current_dir_path = os.getcwd()
+    # カレントディレクトリにフォルダ作成
+    folder_path = current_dir_path + "\\{}".format(com_name)
     file_path = folder_path + '\\data.xlsx'
     if os.path.exists(folder_path) == False:
         # フォルダが存在しなかったら作成 
@@ -130,6 +131,8 @@ def valComparison(file_path):
             #　基準日と次の日の値取得
             ## 最終行
             if (j == data_row - 1):
+                # 基準日
+                day_val = df.iat[j, i]
                 # 次の日
                 next_day_val = df.iat[j, i]
                 # 前日比入力
@@ -204,15 +207,15 @@ def createTsSaveWindow():
         t_code = addT(ticker_symbol)
         # コードから会社名取得
         com_name = getComInfo(t_code)['longName']
-        # Desktopフォルダのパス
-        desktop_path = os.path.expanduser('~\\Desktop')
-        # Desktop/株価フォルダパス
-        folder_path = desktop_path + "\\株価"
-        # Desktop/株価フォルダの存在確認
+        # カレントディレクトリパス取得
+        current_dir_path = os.getcwd()
+        # カレントディレクトリにフォルダ作成
+        folder_path = current_dir_path
+        # フォルダの存在確認
         if os.path.exists(folder_path) == False:
             # フォルダが存在しなかったら作成 
             os.makedirs(folder_path)
-        # ファイルパスは Desktop/株価/code_set.json
+        # ファイルパス
         file_path = folder_path + '\\code_set.json'
         # key = 証券コード, value = 社名
         code_set = {ticker_symbol:com_name}
@@ -243,5 +246,13 @@ code_textbox.place(x=30, y=90)
 # 取得ボタン
 button = tk.Button(baseGround, text='取得', command=main).place(x=30, y=120)
 # 証券コードの保存の表示するボタン
-code_setting_button = tk.Button(baseGround, text='証券コードの設定', command=createTsSaveWindow).place(x=30, y=170)
+code_setting_button = tk.Button(baseGround, text='証券コードの保存', command=createTsSaveWindow).place(x=30, y=170)
+# 保存済みコード表示テキストラベル
+set_code_label = tk.Label(text='保存済みのコード')
+set_code_label.place(x=30, y=200)
+# 証券コードが保存されていたら表示
+try:
+    pass
+except Exception as e:
+    pass
 baseGround.mainloop()
