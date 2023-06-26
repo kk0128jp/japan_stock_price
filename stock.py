@@ -3,7 +3,8 @@ import yfinance as yf
 import os
 import openpyxl
 import pandas as pd
-import json
+import ndjson
+from tkinter import ttk
 
 # メイン処理
 def main():
@@ -25,9 +26,10 @@ def main():
     # excelへ保存
     writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
     # 前日比算出
-    ## ファイルパス
-    desktop_path = os.path.expanduser('~\\Desktop')
-    folder_path = desktop_path + "\\株価\\{}".format(com_name)
+    # カレントディレクトリパス取得
+    current_dir_path = os.getcwd()
+    # カレントディレクトリにフォルダ作成
+    folder_path = current_dir_path + "\\{}".format(com_name)
     file_path = folder_path + '\\data.xlsx'
     get_file_data = valComparison(file_path)
     # 前日比未入力セルの削除
@@ -66,10 +68,10 @@ def resetIndex(data_frame, index):
 # エクセルにデータ書き込み
 def writeDataToCsv(code, com_name, csv_data):
     # フォルダ作成
-    ## デスクトップのパスを取得
-    desktop_path = os.path.expanduser('~\\Desktop')
-    ## デスクトップ配下のフォルダパス
-    folder_path = desktop_path + "\\株価\\{}".format(com_name)
+    # カレントディレクトリパス取得
+    current_dir_path = os.getcwd()
+    # カレントディレクトリにフォルダ作成
+    folder_path = current_dir_path + "\\{}".format(com_name)
     file_path = folder_path + '\\data.xlsx'
     if os.path.exists(folder_path) == False:
         # フォルダが存在しなかったら作成 
@@ -130,6 +132,8 @@ def valComparison(file_path):
             #　基準日と次の日の値取得
             ## 最終行
             if (j == data_row - 1):
+                # 基準日
+                day_val = df.iat[j, i]
                 # 次の日
                 next_day_val = df.iat[j, i]
                 # 前日比入力
@@ -204,20 +208,26 @@ def createTsSaveWindow():
         t_code = addT(ticker_symbol)
         # コードから会社名取得
         com_name = getComInfo(t_code)['longName']
-        # Desktopフォルダのパス
-        desktop_path = os.path.expanduser('~\\Desktop')
-        # Desktop/株価フォルダパス
-        folder_path = desktop_path + "\\株価"
-        # Desktop/株価フォルダの存在確認
+        # カレントディレクトリパス取得
+        current_dir_path = os.getcwd()
+        # カレントディレクトリにフォルダ作成
+        folder_path = current_dir_path
+        # フォルダの存在確認
         if os.path.exists(folder_path) == False:
             # フォルダが存在しなかったら作成 
             os.makedirs(folder_path)
-        # ファイルパスは Desktop/株価/code_set.json
+        # ファイルパス
         file_path = folder_path + '\\code_set.json'
-        # key = 証券コード, value = 社名
+        # JSON data
+        ## key = 証券コード, value = 社名
         code_set = {ticker_symbol:com_name}
-        with open(file_path, mode='a') as f:
-            json.dump(code_set, f)
+        # データに追加
+        with open(file_path, mode='a') as f:    
+            writer = ndjson.writer(f)
+            writer.writerow(code_set)
+        # 保存出来たらサブウィンドウでメッセージ表示
+        can_save_message = '保存しました'
+        showInfo(can_save_message)
     # 証券コード保存ボタン
     save_button = tk.Button(master=sub_window, text="保存", command=saveCodeList)
     save_button.place(x=30, y=130)
@@ -228,6 +238,32 @@ def createTsSaveWindow():
     close_button = tk.Button(master=sub_window, text="閉じる", command=closeWindow)
     close_button.place(x=30, y=180)
 
+# JSONファイルに保存されているコードを読み込み、表示する
+def showCodeSetTable(window):
+    # 証券コードが保存されていたら表示
+    columns = ('証券コード', '会社名')
+    # tableの作成
+    tree = ttk.Treeview(window, columns=columns)
+    tree.heading('証券コード', text='証券コード')
+    tree.heading('会社名', text='会社名')
+    try:
+        # カレントディレクトリパス取得
+        current_dir_path = os.getcwd()
+        # jsonファイルパス
+        json_file_path = current_dir_path + '\\code_set.json'
+        # JSONデータの読み込み
+        with open(json_file_path, mode='r') as f:
+            code_set_data = ndjson.load(f)
+        for i in code_set_data:
+            for k, v in i.items():
+                # tableに値の挿入
+                tree.insert(parent='', index='end', values=(k, v))
+    except FileNotFoundError:
+        return tk.Label(text='コードが保存されていません').place(x=30, y=230)
+    except Exception as e:
+        print(e)
+    return tree
+    
 # メインウィンドウを作成
 baseGround = tk.Tk()
 # ウィンドウのサイズを設定
@@ -243,5 +279,11 @@ code_textbox.place(x=30, y=90)
 # 取得ボタン
 button = tk.Button(baseGround, text='取得', command=main).place(x=30, y=120)
 # 証券コードの保存の表示するボタン
-code_setting_button = tk.Button(baseGround, text='証券コードの設定', command=createTsSaveWindow).place(x=30, y=170)
+code_setting_button = tk.Button(baseGround, text='証券コードの保存', command=createTsSaveWindow).place(x=30, y=170)
+# 保存済みコード表示テキストラベル
+set_code_label = tk.Label(text='保存済みのコード')
+set_code_label.place(x=30, y=200)
+# JSONファイルのデータをtableで表示
+code_set_table = showCodeSetTable(baseGround)
+code_set_table.place(x=30, y=230)
 baseGround.mainloop()
