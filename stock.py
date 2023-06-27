@@ -1,15 +1,16 @@
-import tkinter as tk
-import yfinance as yf
 import os
+import tkinter as tk
+from tkinter import ttk
+import yfinance as yf
 import openpyxl
 import pandas as pd
 import ndjson
-from tkinter import ttk
+
 
 # メイン処理
 def main():
     # 証券コード取得
-    ticker_symbol = code_textbox.get()
+    ticker_symbol = tab1_code_textbox.get()
     # コードに.T(東証)付ける
     t_code = addT(ticker_symbol)
     # コードから会社名取得
@@ -187,56 +188,36 @@ def showInfo(error_messages):
     sub_button = tk.Button(master=sub_window, text="閉じる", command=closeWindow)
     sub_button.place(x=30, y=100)
 
-# 証券コードを保存するサブウィンドウを作成
-def createTsSaveWindow():
-    # サブウィンドウ
-    sub_window = tk.Toplevel()
-    sub_window.title("証券コードを保存")
-    sub_window.geometry('500x500')
-    # ラベル 
-    label = tk.Label(sub_window, text="証券コード")
-    label.place(x=30, y=70)
-    # 証券コード入力欄
-    sub_textbox = tk.Entry(master=sub_window, width=40)
-    sub_textbox.place(x=30, y=100)
-    # 証券コード保存
-    def saveCodeList():
-        # コードから社名を取得
-        # 証券コード取得
-        ticker_symbol = sub_textbox.get()
-        # コードに.T(東証)付ける
-        t_code = addT(ticker_symbol)
-        # コードから会社名取得
-        com_name = getComInfo(t_code)['longName']
-        # カレントディレクトリパス取得
-        current_dir_path = os.getcwd()
-        # カレントディレクトリにフォルダ作成
-        folder_path = current_dir_path
-        # フォルダの存在確認
-        if os.path.exists(folder_path) == False:
-            # フォルダが存在しなかったら作成 
-            os.makedirs(folder_path)
-        # ファイルパス
-        file_path = folder_path + '\\code_set.json'
-        # JSON data
-        ## key = 証券コード, value = 社名
-        code_set = {ticker_symbol:com_name}
-        # データに追加
-        with open(file_path, mode='a') as f:    
-            writer = ndjson.writer(f)
-            writer.writerow(code_set)
-        # 保存出来たらサブウィンドウでメッセージ表示
-        can_save_message = '保存しました'
-        showInfo(can_save_message)
-    # 証券コード保存ボタン
-    save_button = tk.Button(master=sub_window, text="保存", command=saveCodeList)
-    save_button.place(x=30, y=130)
-    # サブウィンドウを閉じる関数
-    def closeWindow():
-        sub_window.destroy()
-        # サブウィンドウ閉じるボタン
-    close_button = tk.Button(master=sub_window, text="閉じる", command=closeWindow)
-    close_button.place(x=30, y=180)
+# 証券コード保存
+def saveCodeList():
+    # コードから社名を取得
+    # 証券コード取得
+    ticker_symbol = tab2_code_textbox.get()
+    # コードに.T(東証)付ける
+    t_code = addT(ticker_symbol)
+    # コードから会社名取得
+    com_name = getComInfo(t_code)['longName']
+    # カレントディレクトリパス取得
+    current_dir_path = os.getcwd()
+    # カレントディレクトリにフォルダ作成
+    folder_path = current_dir_path
+    # フォルダの存在確認
+    if os.path.exists(folder_path) == False:
+        # フォルダが存在しなかったら作成 
+        os.makedirs(folder_path)
+    # ファイルパス
+    file_path = folder_path + '\\code_set.json'
+    # JSON data
+    ## key = 証券コード, value = 社名
+    code_set = {ticker_symbol:com_name}
+    # データに追加
+    with open(file_path, mode='a') as f:    
+        writer = ndjson.writer(f)
+        writer.writerow(code_set)
+    # 保存出来たらサブウィンドウでメッセージ表示
+    can_save_message = '保存しました'
+    showInfo(can_save_message)
+    
 
 # JSONファイルに保存されているコードを読み込み、表示する
 def showCodeSetTable(window):
@@ -270,20 +251,39 @@ baseGround = tk.Tk()
 baseGround.geometry('600x600')
 # 画面タイトル
 baseGround.title('株式データ取得')
-# ラベル
-code_label = tk.Label(text='証券コード')
-code_label.place(x=30, y=70)
-# テキストボックス
-code_textbox = tk.Entry(width=40)
-code_textbox.place(x=30, y=90)
-# 取得ボタン
-button = tk.Button(baseGround, text='取得', command=main).place(x=30, y=120)
-# 証券コードの保存の表示するボタン
-code_setting_button = tk.Button(baseGround, text='証券コードの保存', command=createTsSaveWindow).place(x=30, y=170)
-# 保存済みコード表示テキストラベル
-set_code_label = tk.Label(text='保存済みのコード')
+# Notebookウィジェットの作成
+notebook = ttk.Notebook(baseGround)
+# タブの作成
+tab_one = tk.Frame(notebook, bg='white')
+tab_two = tk.Frame(notebook, bg='white')
+# notebookにタブを追加
+notebook.add(tab_one, text='個別取得')
+notebook.add(tab_two, text='まとめて取得')
+# tabの配置
+notebook.pack(expand=True, fill='both', padx=10, pady=10)
+# tab1 ラベル
+tab1_code_label = tk.Label(tab_one, text='証券コード')
+tab1_code_label.place(x=30, y=70)
+# tab1 テキストボックス
+tab1_code_textbox = tk.Entry(tab_one, width=40)
+tab1_code_textbox.place(x=30, y=90)
+# tab1 取得ボタン
+tab1_button = tk.Button(tab_one, text='取得', command=main).place(x=30, y=120)
+# tab2 ラベル
+tab2_code_label = tk.Label(tab_two, text='保存する証券コード')
+tab2_code_label.place(x=30, y=70)
+# tab2 テキストボックス
+tab2_code_textbox = tk.Entry(tab_two, width=40)
+tab2_code_textbox.place(x=30, y=90)
+# tab2 保存ボタン
+tab2_save_button = tk.Button(tab_two, text='保存ボタン', command=saveCodeList).place(x=30, y=120)
+# tab2 取得ボタン
+tab2_button = tk.Button(tab_two, text='取得').place(x=30, y=150)
+# tab2 保存済みコード表示テキストラベル
+set_code_label = tk.Label(tab_two, text='保存済みのコード')
 set_code_label.place(x=30, y=200)
-# JSONファイルのデータをtableで表示
-code_set_table = showCodeSetTable(baseGround)
+# tab2 JSONファイルのデータをtableで表示
+code_set_table = showCodeSetTable(tab_two)
 code_set_table.place(x=30, y=230)
+
 baseGround.mainloop()
