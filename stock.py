@@ -188,56 +188,36 @@ def showInfo(error_messages):
     sub_button = tk.Button(master=sub_window, text="閉じる", command=closeWindow)
     sub_button.place(x=30, y=100)
 
-# 証券コードを保存するサブウィンドウを作成
-def createTsSaveWindow():
-    # サブウィンドウ
-    sub_window = tk.Toplevel()
-    sub_window.title("証券コードを保存")
-    sub_window.geometry('500x500')
-    # ラベル 
-    label = tk.Label(sub_window, text="証券コード")
-    label.place(x=30, y=70)
-    # 証券コード入力欄
-    sub_textbox = tk.Entry(master=sub_window, width=40)
-    sub_textbox.place(x=30, y=100)
-    # 証券コード保存
-    def saveCodeList():
-        # コードから社名を取得
-        # 証券コード取得
-        ticker_symbol = sub_textbox.get()
-        # コードに.T(東証)付ける
-        t_code = addT(ticker_symbol)
-        # コードから会社名取得
-        com_name = getComInfo(t_code)['longName']
-        # カレントディレクトリパス取得
-        current_dir_path = os.getcwd()
-        # カレントディレクトリにフォルダ作成
-        folder_path = current_dir_path
-        # フォルダの存在確認
-        if os.path.exists(folder_path) == False:
-            # フォルダが存在しなかったら作成 
-            os.makedirs(folder_path)
-        # ファイルパス
-        file_path = folder_path + '\\code_set.json'
-        # JSON data
-        ## key = 証券コード, value = 社名
-        code_set = {ticker_symbol:com_name}
-        # データに追加
-        with open(file_path, mode='a') as f:    
-            writer = ndjson.writer(f)
-            writer.writerow(code_set)
-        # 保存出来たらサブウィンドウでメッセージ表示
-        can_save_message = '保存しました'
-        showInfo(can_save_message)
-    # 証券コード保存ボタン
-    save_button = tk.Button(master=sub_window, text="保存", command=saveCodeList)
-    save_button.place(x=30, y=130)
-    # サブウィンドウを閉じる関数
-    def closeWindow():
-        sub_window.destroy()
-        # サブウィンドウ閉じるボタン
-    close_button = tk.Button(master=sub_window, text="閉じる", command=closeWindow)
-    close_button.place(x=30, y=180)
+# 証券コード保存
+def saveCodeList():
+    # コードから社名を取得
+    # 証券コード取得
+    ticker_symbol = tab2_code_textbox.get()
+    # コードに.T(東証)付ける
+    t_code = addT(ticker_symbol)
+    # コードから会社名取得
+    com_name = getComInfo(t_code)['longName']
+    # カレントディレクトリパス取得
+    current_dir_path = os.getcwd()
+    # カレントディレクトリにフォルダ作成
+    folder_path = current_dir_path
+    # フォルダの存在確認
+    if os.path.exists(folder_path) == False:
+        # フォルダが存在しなかったら作成 
+        os.makedirs(folder_path)
+    # ファイルパス
+    file_path = folder_path + '\\code_set.json'
+    # JSON data
+    ## key = 証券コード, value = 社名
+    code_set = {ticker_symbol:com_name}
+    # データに追加
+    with open(file_path, mode='a') as f:    
+        writer = ndjson.writer(f)
+        writer.writerow(code_set)
+    # 保存出来たらサブウィンドウでメッセージ表示
+    can_save_message = '保存しました'
+    showInfo(can_save_message)
+    
 
 # JSONファイルに保存されているコードを読み込み、表示する
 def showCodeSetTable(window):
@@ -290,15 +270,15 @@ tab1_code_textbox.place(x=30, y=90)
 # tab1 取得ボタン
 tab1_button = tk.Button(tab_one, text='取得', command=main).place(x=30, y=120)
 # tab2 ラベル
-tab2_code_label = tk.Label(tab_two, text='証券コード')
+tab2_code_label = tk.Label(tab_two, text='保存する証券コード')
 tab2_code_label.place(x=30, y=70)
-# tab1 テキストボックス
+# tab2 テキストボックス
 tab2_code_textbox = tk.Entry(tab_two, width=40)
 tab2_code_textbox.place(x=30, y=90)
-# tab1 取得ボタン
-tab2_button = tk.Button(tab_two, text='取得', command=main).place(x=30, y=120)
-# tab2 証券コードの保存の表示するボタン
-code_setting_button = tk.Button(tab_two, text='証券コードの保存', command=createTsSaveWindow).place(x=30, y=170)
+# tab2 保存ボタン
+tab2_save_button = tk.Button(tab_two, text='保存ボタン', command=saveCodeList).place(x=30, y=120)
+# tab2 取得ボタン
+tab2_button = tk.Button(tab_two, text='取得').place(x=30, y=150)
 # tab2 保存済みコード表示テキストラベル
 set_code_label = tk.Label(tab_two, text='保存済みのコード')
 set_code_label.place(x=30, y=200)
