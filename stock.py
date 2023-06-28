@@ -26,12 +26,13 @@ def main():
     add_comparison_col = addComparisonCol(new_index_data)
     # excelへ保存
     writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
-    # 前日比算出
-    # カレントディレクトリパス取得
-    current_dir_path = os.getcwd()
+    # 実行ファイルパス取得
+    exe_file_path = os.path.abspath(__file__)
+    exe_folder_path = os.path.dirname(exe_file_path)
     # カレントディレクトリにフォルダ作成
-    folder_path = current_dir_path + "\\{}".format(com_name)
+    folder_path = exe_folder_path + "\\stock\\{}".format(com_name)
     file_path = folder_path + '\\data.xlsx'
+    # 前日比算出
     get_file_data = valComparison(file_path)
     # 前日比未入力セルの削除
     delNotEnteredCompareCol(file_path)
@@ -69,10 +70,11 @@ def resetIndex(data_frame, index):
 # エクセルにデータ書き込み
 def writeDataToCsv(code, com_name, csv_data):
     # フォルダ作成
-    # カレントディレクトリパス取得
-    current_dir_path = os.getcwd()
+    # 実行フォルダパス取得
+    exe_file_path = os.path.abspath(__file__)
+    exe_folder_path = os.path.dirname(exe_file_path)
     # カレントディレクトリにフォルダ作成
-    folder_path = current_dir_path + "\\{}".format(com_name)
+    folder_path = exe_folder_path + '\\stock\\{}'.format(com_name)
     file_path = folder_path + '\\data.xlsx'
     if os.path.exists(folder_path) == False:
         # フォルダが存在しなかったら作成 
@@ -104,7 +106,7 @@ def writeDataToCsv(code, com_name, csv_data):
             max_row = sheet.max_row
             # 最終行に追記
             csv_data.to_excel(writer, sheet_name='Sheet', startrow=max_row, header=False)
-        showInfo("データを保存しました")
+        showInfo("データを取得しました")
     except Exception as e:
         showInfo(e)
         
@@ -197,10 +199,11 @@ def saveCodeList():
     t_code = addT(ticker_symbol)
     # コードから会社名取得
     com_name = getComInfo(t_code)['longName']
-    # カレントディレクトリパス取得
-    current_dir_path = os.getcwd()
-    # カレントディレクトリにフォルダ作成
-    folder_path = current_dir_path
+    # 実行ファイルパス取得
+    exe_file_path = os.path.abspath(__file__)
+    exe_folder_path = os.path.dirname(exe_file_path)
+    # 実行ファイル配下にフォルダ作成
+    folder_path = exe_folder_path + '\\stock'
     # フォルダの存在確認
     if os.path.exists(folder_path) == False:
         # フォルダが存在しなかったら作成 
@@ -218,6 +221,9 @@ def saveCodeList():
     can_save_message = '保存しました'
     showInfo(can_save_message)
     
+# コードリストから株価を取得する
+def getDataFromCodeList():
+    pass
 
 # JSONファイルに保存されているコードを読み込み、表示する
 def showCodeSetTable(window):
@@ -228,10 +234,11 @@ def showCodeSetTable(window):
     tree.heading('証券コード', text='証券コード')
     tree.heading('会社名', text='会社名')
     try:
-        # カレントディレクトリパス取得
-        current_dir_path = os.getcwd()
+        # 実行ファイルパス取得
+        exe_file_path = os.path.abspath(__file__)
+        exe_folder_path = os.path.dirname(exe_file_path)
         # jsonファイルパス
-        json_file_path = current_dir_path + '\\code_set.json'
+        json_file_path = exe_folder_path + '\\stock\\code_set.json'
         # JSONデータの読み込み
         with open(json_file_path, mode='r') as f:
             code_set_data = ndjson.load(f)
@@ -240,7 +247,7 @@ def showCodeSetTable(window):
                 # tableに値の挿入
                 tree.insert(parent='', index='end', values=(k, v))
     except FileNotFoundError:
-        return tk.Label(text='コードが保存されていません').place(x=30, y=230)
+        return tk.Label(master=window, text='コードが保存されていません')
     except Exception as e:
         print(e)
     return tree
@@ -278,7 +285,7 @@ tab2_code_textbox.place(x=30, y=90)
 # tab2 保存ボタン
 tab2_save_button = tk.Button(tab_two, text='保存ボタン', command=saveCodeList).place(x=30, y=120)
 # tab2 取得ボタン
-tab2_button = tk.Button(tab_two, text='取得').place(x=30, y=150)
+tab2_button = tk.Button(tab_two, text='取得', command=getDataFromCodeList).place(x=30, y=150)
 # tab2 保存済みコード表示テキストラベル
 set_code_label = tk.Label(tab_two, text='保存済みのコード')
 set_code_label.place(x=30, y=200)
