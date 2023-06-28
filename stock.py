@@ -26,10 +26,11 @@ def main():
     add_comparison_col = addComparisonCol(new_index_data)
     # excelへ保存
     writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
-    # カレントディレクトリパス取得
-    current_dir_path = os.getcwd()
+    # 実行ファイルパス取得
+    exe_file_path = os.path.abspath(__file__)
+    exe_folder_path = os.path.dirname(exe_file_path)
     # カレントディレクトリにフォルダ作成
-    folder_path = current_dir_path + "\\{}".format(com_name)
+    folder_path = exe_folder_path + "\\stock\\{}".format(com_name)
     file_path = folder_path + '\\data.xlsx'
     # 前日比算出
     get_file_data = valComparison(file_path)
@@ -69,10 +70,11 @@ def resetIndex(data_frame, index):
 # エクセルにデータ書き込み
 def writeDataToCsv(code, com_name, csv_data):
     # フォルダ作成
-    # カレントディレクトリパス取得
-    current_dir_path = os.getcwd()
+    # 実行フォルダパス取得
+    exe_file_path = os.path.abspath(__file__)
+    exe_folder_path = os.path.dirname(exe_file_path)
     # カレントディレクトリにフォルダ作成
-    folder_path = current_dir_path + "\\{}".format(com_name)
+    folder_path = exe_folder_path + '\\stock\\{}'.format(com_name)
     file_path = folder_path + '\\data.xlsx'
     if os.path.exists(folder_path) == False:
         # フォルダが存在しなかったら作成 
@@ -197,10 +199,11 @@ def saveCodeList():
     t_code = addT(ticker_symbol)
     # コードから会社名取得
     com_name = getComInfo(t_code)['longName']
-    # カレントディレクトリパス取得
-    current_dir_path = os.getcwd()
-    # カレントディレクトリにフォルダ作成
-    folder_path = current_dir_path
+    # 実行ファイルパス取得
+    exe_file_path = os.path.abspath(__file__)
+    exe_folder_path = os.path.dirname(exe_file_path)
+    # 実行ファイル配下にフォルダ作成
+    folder_path = exe_folder_path + '\\stock'
     # フォルダの存在確認
     if os.path.exists(folder_path) == False:
         # フォルダが存在しなかったら作成 
@@ -231,10 +234,11 @@ def showCodeSetTable(window):
     tree.heading('証券コード', text='証券コード')
     tree.heading('会社名', text='会社名')
     try:
-        # カレントディレクトリパス取得
-        current_dir_path = os.getcwd()
+        # 実行ファイルパス取得
+        exe_file_path = os.path.abspath(__file__)
+        exe_folder_path = os.path.dirname(exe_file_path)
         # jsonファイルパス
-        json_file_path = current_dir_path + '\\code_set.json'
+        json_file_path = exe_folder_path + '\\stock\\code_set.json'
         # JSONデータの読み込み
         with open(json_file_path, mode='r') as f:
             code_set_data = ndjson.load(f)
@@ -243,7 +247,7 @@ def showCodeSetTable(window):
                 # tableに値の挿入
                 tree.insert(parent='', index='end', values=(k, v))
     except FileNotFoundError:
-        return tk.Label(text='コードが保存されていません')
+        return tk.Label(master=window, text='コードが保存されていません')
     except Exception as e:
         print(e)
     return tree
