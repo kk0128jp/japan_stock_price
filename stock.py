@@ -265,7 +265,38 @@ def saveCodeList():
     
 # コードリストから株価を取得する
 def getDataFromCodeList():
-    pass
+    # JSONファイルパス取得
+    json_folder_path = getJsonFolderPath()
+    json_file_path = json_folder_path + '\\code_set.json'
+    with open(json_file_path, mode='r') as f:
+        code_set_data = ndjson.load(f)
+        for i in code_set_data:
+            for key in i.keys():
+                # 東証用に.Tをつける
+                t_code = addT(key)
+                # コードから会社名取得
+                com_name = getComInfo(t_code)['longName']
+                # 最新日の株価データ取得
+                ## 取得するカラム
+                col_list = ["Open", "Close", "High", "Low"]
+                ## 1日のデータ取得
+                day_data = getDaydata(t_code)[col_list]
+                # インデックス整形
+                new_index_data = resetIndex(day_data,day_data.index)
+                # 前日比カラム追加
+                add_comparison_col = addComparisonCol(new_index_data)
+                # 実行ファイルパス取得
+                folder_path = getExcelFolderPath(com_name)
+                file_path = folder_path + '\\data.xlsx'
+                # excelへ保存
+                writeDataToCsv(key, com_name, add_comparison_col)
+                # 前日比算出
+                get_file_data = valComparison(file_path)
+                # 前日比未入力セルの削除
+                delNotEnteredCompareCol(file_path)
+                # 前日比入力済みデータを再入力
+                saveEnteredCompareCol(file_path, get_file_data)
+                
 
 # JSONファイルに保存されているコードを読み込み、表示する
 def showCodeSetTable(window):
@@ -291,7 +322,7 @@ def showCodeSetTable(window):
     except Exception as e:
         print(e)
     return tree
-    
+
 # メインウィンドウを作成
 baseGround = tk.Tk()
 # ウィンドウのサイズを設定
