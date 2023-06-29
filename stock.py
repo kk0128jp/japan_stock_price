@@ -24,14 +24,14 @@ def main():
     new_index_data = resetIndex(day_data,day_data.index)
     # 前日比カラム追加
     add_comparison_col = addComparisonCol(new_index_data)
-    # excelへ保存
-    writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
     # 実行ファイルパス取得
     exe_file_path = os.path.abspath(__file__)
     exe_folder_path = os.path.dirname(exe_file_path)
-    # カレントディレクトリにフォルダ作成
+    # 実行ファイルフォルダ作成
     folder_path = exe_folder_path + "\\stock\\{}".format(com_name)
     file_path = folder_path + '\\data.xlsx'
+    # excelへ保存
+    writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
     # 前日比算出
     get_file_data = valComparison(file_path)
     # 前日比未入力セルの削除
@@ -67,6 +67,16 @@ def resetIndex(data_frame, index):
     set_new_index = drop_data_col.set_index("new_date")
     return set_new_index
 
+# 株価データを保存するときに重複をなくす
+def avoidStockDataDuplication(file_path, csv_date):
+    df = pd.read_excel(file_path, sheet_name="Sheet", header=None, skiprows=3)   
+    for date in df[0]:
+        if (date == csv_date):
+            # 一致する場合 True
+            return True
+        else:
+            pass
+
 # エクセルにデータ書き込み
 def writeDataToCsv(code, com_name, csv_data):
     # フォルダ作成
@@ -97,18 +107,23 @@ def writeDataToCsv(code, com_name, csv_data):
         ws["H3"] = "安値"
         ws["I3"] = "前日比"
         wb.save(file_path)
-    # xlsxファイルにデータ追記
-    try:
-        with pd.ExcelWriter(file_path, mode='a', if_sheet_exists='overlay') as writer:
-            # 最終行取得
-            load_file = openpyxl.load_workbook(file_path)
-            sheet = load_file['Sheet']
-            max_row = sheet.max_row
-            # 最終行に追記
-            csv_data.to_excel(writer, sheet_name='Sheet', startrow=max_row, header=False)
-        showInfo("データを取得しました")
-    except Exception as e:
-        showInfo(e)
+    # 重複チェック
+    ## 重複がある場合は保存しない
+    if (avoidStockDataDuplication(file_path, csv_data.index)):
+        showInfo('既に保存されています')
+    else:
+        # xlsxファイルにデータ追記
+        try:
+            with pd.ExcelWriter(file_path, mode='a', if_sheet_exists='overlay') as writer:
+                # 最終行取得
+                load_file = openpyxl.load_workbook(file_path)
+                sheet = load_file['Sheet']
+                max_row = sheet.max_row
+                # 最終行に追記
+                csv_data.to_excel(writer, sheet_name='Sheet', startrow=max_row, header=False)
+            showInfo("データを取得しました")
+        except Exception as e:
+            showInfo(e)
         
 # 前日比カラムの追加
 def addComparisonCol(data):
