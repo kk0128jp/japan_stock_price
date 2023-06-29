@@ -2,6 +2,8 @@
 
 ## Description
 
+You can get japanes stock prices data on GUI
+
 ## Requirement
 
 - Python 3.11.0
