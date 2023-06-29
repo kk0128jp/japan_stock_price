@@ -190,6 +190,19 @@ def showInfo(error_messages):
     sub_button = tk.Button(master=sub_window, text="閉じる", command=closeWindow)
     sub_button.place(x=30, y=100)
 
+# Jsonデータの重複チェック
+## 重複あり True, 重複なし False
+def jsonAvoidDuplication(file_path, key):
+    result = False
+    with open(file_path, mode='r') as f:
+        code_set_data = ndjson.load(f)
+        for i in code_set_data:
+            for key_code in i.keys():
+                if (key_code == key):
+                    result = True
+                    return result
+    return result
+
 # 証券コード保存
 def saveCodeList():
     # コードから社名を取得
@@ -213,13 +226,18 @@ def saveCodeList():
     # JSON data
     ## key = 証券コード, value = 社名
     code_set = {ticker_symbol:com_name}
-    # データに追加
-    with open(file_path, mode='a') as f:    
-        writer = ndjson.writer(f)
-        writer.writerow(code_set)
-    # 保存出来たらサブウィンドウでメッセージ表示
-    can_save_message = '保存しました'
-    showInfo(can_save_message)
+    # 重複チェック
+    ## True(重複あり)の時にメッセージ表示
+    if (jsonAvoidDuplication(file_path, ticker_symbol)):
+        showInfo('既に保存されているコードです')
+    else:
+        # False(重複なし)
+        # データに追加
+        with open(file_path, mode='a') as f:    
+            writer = ndjson.writer(f)
+            writer.writerow(code_set)
+        # 保存出来たらサブウィンドウでメッセージ表示
+        showInfo('保存しました')
     
 # コードリストから株価を取得する
 def getDataFromCodeList():
