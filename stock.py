@@ -25,10 +25,7 @@ def main():
     # 前日比カラム追加
     add_comparison_col = addComparisonCol(new_index_data)
     # 実行ファイルパス取得
-    exe_file_path = os.path.abspath(__file__)
-    exe_folder_path = os.path.dirname(exe_file_path)
-    # 実行ファイルフォルダ作成
-    folder_path = exe_folder_path + "\\stock\\{}".format(com_name)
+    folder_path = getExcelFolderPath(com_name)
     file_path = folder_path + '\\data.xlsx'
     # excelへ保存
     writeDataToCsv(ticker_symbol, com_name, add_comparison_col)
@@ -69,22 +66,36 @@ def resetIndex(data_frame, index):
 
 # 株価データを保存するときに重複をなくす
 def avoidStockDataDuplication(file_path, csv_date):
-    df = pd.read_excel(file_path, sheet_name="Sheet", header=None, skiprows=3)   
-    for date in df[0]:
-        if (date == csv_date):
-            # 一致する場合 True
-            return True
-        else:
-            pass
+    df = pd.read_excel(file_path, sheet_name="Sheet", header=None, skiprows=3)
+    if (not df.empty):
+        for date in df[0]:
+            if (date == csv_date):
+                # 一致する場合 True
+                return True
+            else:
+                pass
+
+# /stockまでのパスを返す
+def getJsonFolderPath():
+    # 実行フォルダパス取得
+    exe_file_path = os.path.abspath(__file__)
+    exe_folder_path = os.path.dirname(exe_file_path)
+    stock_folder = exe_folder_path + '\\stock'
+    return stock_folder
+
+# /stock/com_name/data.xlsxパスを返す
+def getExcelFolderPath(com_name):
+    # 実行フォルダパス取得
+    exe_file_path = os.path.abspath(__file__)
+    exe_folder_path = os.path.dirname(exe_file_path)
+    # stockフォルダ作成
+    folder_path = exe_folder_path + '\\stock\\{}'.format(com_name)
+    return folder_path
 
 # エクセルにデータ書き込み
 def writeDataToCsv(code, com_name, csv_data):
     # フォルダ作成
-    # 実行フォルダパス取得
-    exe_file_path = os.path.abspath(__file__)
-    exe_folder_path = os.path.dirname(exe_file_path)
-    # カレントディレクトリにフォルダ作成
-    folder_path = exe_folder_path + '\\stock\\{}'.format(com_name)
+    folder_path = getExcelFolderPath(com_name)
     file_path = folder_path + '\\data.xlsx'
     if os.path.exists(folder_path) == False:
         # フォルダが存在しなかったら作成 
@@ -227,11 +238,9 @@ def saveCodeList():
     t_code = addT(ticker_symbol)
     # コードから会社名取得
     com_name = getComInfo(t_code)['longName']
-    # 実行ファイルパス取得
-    exe_file_path = os.path.abspath(__file__)
-    exe_folder_path = os.path.dirname(exe_file_path)
     # 実行ファイル配下にフォルダ作成
-    folder_path = exe_folder_path + '\\stock'
+    folder_path = getJsonFolderPath()
+    #folder_path = 
     # フォルダの存在確認
     if os.path.exists(folder_path) == False:
         # フォルダが存在しなかったら作成 
@@ -266,12 +275,10 @@ def showCodeSetTable(window):
     tree = ttk.Treeview(window, columns=columns)
     tree.heading('証券コード', text='証券コード')
     tree.heading('会社名', text='会社名')
-    try:
-        # 実行ファイルパス取得
-        exe_file_path = os.path.abspath(__file__)
-        exe_folder_path = os.path.dirname(exe_file_path)
+    try:        
         # jsonファイルパス
-        json_file_path = exe_folder_path + '\\stock\\code_set.json'
+        folder_path = getJsonFolderPath()
+        json_file_path = folder_path + '\\code_set.json'
         # JSONデータの読み込み
         with open(json_file_path, mode='r') as f:
             code_set_data = ndjson.load(f)
